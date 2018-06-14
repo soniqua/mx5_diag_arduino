@@ -28,11 +28,11 @@ void setup() {
   pinMode(11, OUTPUT);
 
   //pwm pin test
-  analogWrite(11,150);
+  analogWrite(11, 150);
 
   //set ints
-  int_count=0;
-  ten_count=0;
+  int_count = 0;
+  ten_count = 0;
 }
 
 void loop() {
@@ -75,18 +75,33 @@ void loop() {
   //check for long pulse
   if (long_puls_thresh < duration && duration < code_break) {
     //if ten_count=1 already then need new code
-    if ten_count=1 {
-      //start again, but keep digits}
-    
+    switch (ten_count) {
+      case 0:
+        thou = int_count * 1000;
+        int_count = 0;
+        break;
+      case 1:
+        hun = int_count * 100;
+        int_count = 0;
+        break;
+      case 2:
+        ten = int_count * 10;
+        int_count = 0;
+        break;
+      case 3:
+        //at this point, last digit of error should be known, and should be followed by a 4s timeout
+        err_code = thou + hun + ten + int_count;
+        break;
+    }
     ten_count++;
     Serial.print("Long Pulse");
   }
   //check for no pulse, with content in either int_count or ten_count
-  if ((duration == 0) && (int_count > 0 || ten_count > 0)) {
+  if ((duration == 0) && (int_count >= 0 || ten_count > 0)) {
     ten_count = ten_count * 10;
     err_code = ten_count + int_count;
     Serial.println();
-    Serial.print("Error Code is: ");
+    Serial.print("Error Code is: P");
     Serial.print(err_code);
     Serial.println();
     Serial.print("End of Code");
